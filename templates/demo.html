@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат с ИИ-тьютором</title>
+    <style>
+        :root {
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            color: #1F2A37;
+            --page-bg: #F4F7FB;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2A37;
+            --text-muted: #5B6B7A;
+            --accent: #1E4FA3;
+            --accent-hover: #163E82;
+            --border: #D7E0EA;
+            --field-bg: #FFFFFF;
+            --answer-bg: #F8FBFF;
+            --error: #C62828;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: var(--page-bg);
+        }
+
+        main {
+            max-width: 760px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: var(--text-muted);
+        }
+
+        form {
+            display: grid;
+            gap: 12px;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        select,
+        textarea,
+        button {
+            font: inherit;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            background: var(--field-bg);
+            color: var(--text-main);
+        }
+
+        select:focus,
+        textarea:focus {
+            outline: 2px solid rgba(30, 79, 163, 0.12);
+            outline-offset: 0;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        .row {
+            display: grid;
+            gap: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .row {
+                grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+            }
+        }
+
+        button {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .answer {
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--answer-bg);
+            color: var(--text-main);
+            min-height: 120px;
+            line-height: 1.5;
+        }
+
+        .answer pre {
+            margin: 0 0 12px;
+            overflow-x: auto;
+            padding: 10px;
+            border-radius: 6px;
+            background: #EEF4FB;
+        }
+
+        .answer code {
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: #EEF4FB;
+            font-family: Consolas, monospace;
+        }
+
+        .answer h1,
+        .answer h2,
+        .answer h3 {
+            margin: 16px 0 8px;
+            color: var(--accent);
+            line-height: 1.2;
+        }
+
+        .answer h1 {
+            font-size: 20px;
+        }
+
+        .answer h2 {
+            font-size: 18px;
+        }
+
+        .answer h3 {
+            font-size: 16px;
+        }
+
+        .answer h1:first-child,
+        .answer h2:first-child,
+        .answer h3:first-child {
+            margin-top: 0;
+        }
+
+        .answer pre code {
+            padding: 0;
+            background: transparent;
+        }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        .meta {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .answer.error {
+            color: var(--error);
+            background: #FFF7F7;
+            border-color: #F1D7D7;
+        }
+
+        @media (max-width: 639px) {
+            body {
+                padding: 0;
+                background: var(--card-bg);
+            }
+
+            main {
+                max-width: none;
+                min-height: 100vh;
+                border: 0;
+                border-radius: 0;
+                padding: 20px 16px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Чат с ИИ-тьютором</h1>
+    <p>Виртуальный преподаватель отвечает на вопросы студентов.</p>
+
+    <form id="demo-form">
+        <div class="row">
+            <label>
+                Роль
+                <select name="role">
+                    <option value="math_tutor">Тьютор по математике</option>
+                    <option value="history_tutor">Тьютор по истории</option>
+                </select>
+            </label>
+
+            <label>
+                Стиль ответа
+                <select name="template">
+                    <option value="tutor_quick_answer" selected>Краткий ответ</option>
+                    <option value="tutor_full_answer">Развернутый ответ</option>
+                </select>
+            </label>
+        </div>
+
+        <label>
+            Вопрос
+            <textarea name="question" placeholder="Например: объясни теорему Пифагора простыми словами" required>Как учиться?</textarea>
+        </label>
+
+        <button id="submit-btn" type="submit">Спросить</button>
+    </form>
+
+    <div id="answer" class="answer muted">Ответ появится здесь.</div>
+    <div id="answer-meta" class="meta muted"></div>
+</main>
+
+<script>
+    const form = document.getElementById("demo-form");
+    const button = document.getElementById("submit-btn");
+    const answer = document.getElementById("answer");
+    const answerMeta = document.getElementById("answer-meta");
+
+    function escapeHtml(value) {
+        return value
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;");
+    }
+
+    function renderMarkdown(source) {
+        const codeBlocks = [];
+        const withPlaceholders = escapeHtml(source).replace(/```([\s\S]*?)```/g, (_, code) => {
+            const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
+            codeBlocks.push(`<pre><code>${code.trim()}</code></pre>`);
+            return placeholder;
+        });
+
+        return withPlaceholders
+            .replace(/^### (.*$)\n?/gm, "<h3>$1</h3>")
+            .replace(/^## (.*$)\n?/gm, "<h2>$1</h2>")
+            .replace(/^# (.*$)\n?/gm, "<h1>$1</h1>")
+            .replace(/`([^`]+)`/g, "<code>$1</code>")
+            .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+            .replace(/\n/g, "<br>")
+            .replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => codeBlocks[Number(index)]);
+    }
+
+    function renderAnswer({ text = "", html = "", meta = "", muted = false, error = false }) {
+        if (html !== "") {
+            answer.innerHTML = html;
+        } else {
+            answer.textContent = text;
+        }
+
+        answer.classList.toggle("muted", muted);
+        answer.classList.toggle("error", error);
+        answerMeta.textContent = meta;
+        answerMeta.classList.toggle("muted", !meta);
+    }
+
+    function showText(text, options = {}) {
+        renderAnswer({ text, ...options });
+    }
+
+    function showMarkdown(text, meta = "") {
+        renderAnswer({ html: renderMarkdown(text), meta });
+    }
+
+    function formatErrorDetail(item) {
+        if (!item || typeof item !== "object") {
+            return "";
+        }
+
+        const location = Array.isArray(item.loc) ? item.loc.join(".") : "";
+        const message = typeof item.msg === "string" ? item.msg : JSON.stringify(item);
+        return location ? `${location}: ${message}` : message;
+    }
+
+    function getErrorMessage(payload, fallback) {
+        if (!payload || typeof payload !== "object") {
+            return fallback;
+        }
+
+        if (typeof payload.detail === "string") {
+            return payload.detail;
+        }
+
+        if (Array.isArray(payload.detail)) {
+            return payload.detail.map(formatErrorDetail).filter(Boolean).join("\n") || fallback;
+        }
+
+        return typeof payload.error === "string" ? payload.error : fallback;
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const data = new FormData(form);
+        const question = (data.get("question") || "").toString().trim();
+
+        if (!question) {
+            showText("Введите вопрос.");
+            return;
+        }
+
+        button.disabled = true;
+        showText("Отправка запроса...", { muted: true });
+        const startedAt = performance.now();
+
+        try {
+            const response = await fetch("/ask", {
+                method: "POST",
+                body: data,
+            });
+            const payload = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(getErrorMessage(payload, "Запрос завершился ошибкой."));
+            }
+
+            const responseText = typeof payload === "string"
+                ? payload
+                : (payload && typeof payload.response === "string"
+                    ? payload.response
+                    : JSON.stringify(payload, null, 2));
+            const durationMs = performance.now() - startedAt;
+            const duration = `Время ответа: ${(durationMs / 1000).toFixed(2)} с`;
+
+            showMarkdown(responseText, duration);
+        } catch (error) {
+            showText(error.message || String(error), { error: true });
+        } finally {
+            button.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
