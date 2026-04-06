@@ -1,16 +1,18 @@
 from dotenv import load_dotenv
+from fastapi.testclient import TestClient
 
-from edu_assistant.assistant import create_response
+from edu_assistant.api import app
 
 load_dotenv()
 
-INPUT_PROMPT = "1+2"
+client = TestClient(app)
 
-response = create_response(
-    llm_key="ollama",
-    role="math_tutor",
-    template="tutor_quick_answer",
-    prompt=INPUT_PROMPT
-)
+response = client.post(
+    "/ask",
+    data={
+        "role": "math_tutor",
+        "template": "tutor_quick_answer",
+        "question": "Что такое число Пи?",
+    })
 
-print(response)
+print(response.text)
