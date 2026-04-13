@@ -1,9 +1,9 @@
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 
 from edu_assistant.api import app
 
-load_dotenv()
+# load_dotenv()
 
 client = TestClient(app)
 
